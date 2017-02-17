@@ -37,8 +37,8 @@ SELECT
          else 'lost' end as opportunity_status, 
     opportunity_industry AS "vertical",
     salesforcemerchants.opportunity_merchant_country AS "opportunity_merchant_country",
-    case when DATE(merchants.unified_funnel__activation_date) < '2017-01-28' THEN 1 ELSE 0 END AS "live_or_not",
-    DATE(merchants.unified_funnel__activation_date) AS "unified_funnel__activation_date_date",
+    case when DATE(merchants.sales_funnel__activation_date) < '2017-01-28' THEN 1 ELSE 0 END AS "live_or_not",
+    DATE(merchants.sales_funnel__activation_date) AS "sales_funnel__activation_date_date",
     --salesforcemerchants.opportunity_stage AS "opportunity_stage",
     (COALESCE(COALESCE( ( SUM(DISTINCT (CAST(FLOOR(COALESCE(salesforcemerchants.opportunity_amount,0)*(1000000*1.0)) AS DECIMAL(38,0))) + CAST(STRTOL(LEFT(MD5(CONVERT(VARCHAR,salesforcemerchants.opportunity)),15),16) AS DECIMAL(38,0))* 1.0e8 + CAST(STRTOL(RIGHT(MD5(CONVERT(VARCHAR,salesforcemerchants.opportunity)),15),16) AS DECIMAL(38,0)) ) - SUM(DISTINCT CAST(STRTOL(LEFT(MD5(CONVERT(VARCHAR,salesforcemerchants.opportunity)),15),16) AS DECIMAL(38,0))* 1.0e8 + CAST(STRTOL(RIGHT(MD5(CONVERT(VARCHAR,salesforcemerchants.opportunity)),15),16) AS DECIMAL(38,0))) )  / (1000000*1.0), 0), 0))*(avg(opportunity_probability)/100) AS "mes_opportunity_amount",
     COALESCE(SUM(datediff (days, opportunity_close_date, getdate())), 0) AS "days_since_close_date"
