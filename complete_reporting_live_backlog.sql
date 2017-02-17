@@ -1,10 +1,29 @@
+/**********************************
+First load all the user tables that I have uploaded so that the query runs faster. 
+I have found doing this is much faster than joining on usertables. 
+**********************************/
+
+-- load the upsells table and only include the ones that have an start date in the past
+-- this table is available (https://docs.google.com/spreadsheets/d/10wzAcpwksW1reaGA7bKBQDiLDLVrOlnKcvuk1JTqocI/edit)
 with current_upsells as (
-select * from usertables.mc_upsell_csv where include = 1 -- TEMPORARY
+select * from usertables.mc_upsell_csv where include = 1 
 ),
--- load backlog
+-- load backlog curve, this determines the backlog 
 backlog_curve as (
 select * from usertables.mc_backlog_master_global_csv
 ),
+-- country name and code groupings
+country_code as(
+select * from usertables.mc_country_codes_csv),
+-- team role and location data [MAKE SURE THIS IS UP TO DATE]
+team_role as(
+select * from usertables.mc_team_role_csv),
+
+/**********************************
+Now calculate the non_upsell_processing and then the upsell processing in two steps so that we can see the contribution
+of upsells to nPV. 
+**********************************/
+
 -- calculate processing volumes before upsells
 non_upsell_processing as (
 select
@@ -27,7 +46,7 @@ LEFT JOIN current_upsells as upsells ON upsells.sales_merchant_id = ap.sales_mer
 where
 capture_date > '2016-09-30'
 and 
-                               capture_date < '2017-02-12' and
+                               --capture_date < '2017-02-12' and
 
 m.sales__is_sold = true
 group by 1,2,3,4,5),
@@ -51,20 +70,34 @@ INNER JOIN current_upsells as upsells ON upsells.sales_merchant_id = ap.sales_me
 where
 capture_date > '2016-09-30'
 and 
-                      capture_date < '2017-02-12' and
+                      --capture_date < '2017-02-12' and
  
 m.sales__is_sold = true
 
 group by 1,2,3,4,5), 
+
+
+/**********************************
+Join the upsell and non-upsell tables so that we have a complete data set of 
+all sold processing volumes
+**********************************/
+
 
 processing_volume as (
 select * from non_upsell_processing
 union
 select * from upsell_processing ),
 
-/**********
+/********************************************
+********************************************
+
 CHANGE DATES BELOW TO REPORTING DATE (TWO PLACES)
-***********/
+We have to do this because if you use the max of the capture date and there are gaps in processing days
+we will miscalculate the days_since_activation. We could use a dynamic CURRENT_DATE - 1 or something,
+but this could be prown to errors also. 
+
+********************************************
+********************************************/
 backlog_summary as (
 select
 sales_merchant_id,
@@ -93,18 +126,12 @@ sales_activation_date,
 first_year_est_npv * first_year_sold_pct as backlog_npv
 from backlog_summary bs 
 cross join backlog_curve as curve
-where (curve.days_since_activation between bs.days_since_activation and 365)),
+where (curve.days_since_activation between bs.days_since_activation and 365))
 
 
-/** for faster access put usertables in memory **/ 
-country_code as(
-select * from usertables.mc_country_codes_csv),
-
-team_role as(
-select * from usertables.mc_team_role_csv)
-
-
-/** create formatted table output **/ 
+/************************************* 
+Create formatted output adding in all the information that is useful for reporting 
+**************************************/ 
 
 select 
   'weekly_processing' as data_type,
