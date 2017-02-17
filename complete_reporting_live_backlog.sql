@@ -103,7 +103,7 @@ select
 sales_merchant_id,
 sales_category, 
 sales_activation_date,
-datediff('day', pv.sales_activation_date, '2017-02-12') as days_since_activation,      -- UPDATE THIS
+datediff('day', pv.sales_activation_date, today()) as days_since_activation,      -- UPDATE THIS
 first_year_npv,
 first_year_npv/first_year_sold_cumulative_pct as first_year_est_npv
 from
@@ -115,7 +115,7 @@ sum(first_year_sold_npv_usd_fx) as first_year_npv
 from processing_volume group by 1,2,3) pv 
 
 
-inner join backlog_curve bc on bc.days_since_activation = datediff('day', pv.sales_activation_date, '2017-02-12')  -- UPDATE THIS
+inner join backlog_curve bc on bc.days_since_activation = datediff('day', pv.sales_activation_date, today())  -- UPDATE THIS
 where first_year_npv > 0),
 
 daily_backlog as (select
