@@ -45,10 +45,14 @@ SELECT
 FROM sales.salesforce AS salesforcemerchants
 LEFT JOIN dim.merchants as merchants on stripe_merchant_id = merchants._id
 WHERE 
---(salesforcemerchants.opportunity_stage = 'Onboarding' OR salesforcemerchants.opportunity_stage = 'Live') AND 
-(merchants.unified_funnel__activation_date IS NULL OR merchants.unified_funnel__activation_date >= TIMESTAMP '2017-02-12')
-AND salesforcemerchants.opportunity_expected_go_live_date >= TIMESTAMP '2017-02-06'
-AND salesforcemerchants.opportunity_expected_go_live_date <= TIMESTAMP '2017-03-31'
+/********
+NEED TO UPDATE DATES BELOW    
+********/
+    
+    
+(merchants.sales_funnel__activation_date IS NULL OR merchants.sales_funnel__activation_date >= TIMESTAMP '2017-02-12')
+AND salesforcemerchants.opportunity_expected_go_live_date >= TIMESTAMP '2017-02-06' -- include things that may be going live this week
+AND salesforcemerchants.opportunity_expected_go_live_date <= TIMESTAMP '2017-12-31' -- include all opportunities expected to live this year
 AND salesforcemerchants.opportunity_stage in ('Negotiating', 'Discovering Needs', 'Validating Fit', 'Proposing Solution', 'Onboarding', 'Live')
 
 GROUP BY 1,2,3,4,5,6,7,8,9,10
@@ -78,18 +82,18 @@ select
   when cc.sales_region = 'UK' and vertical in ('Financial') then 'Financial Services'
   when cc.sales_region = 'UK' and vertical in ('Healthcare', 'Professional Services', 'Other Services','B2B', 'B2C Software', 'Content', 'Other Software & Content', 'B2C (Software)', 'B2B (Software)', 'Real Estate') then 'Services, Software & Content'
   -- US/CA
-  when cc.sfdc_country_name = 'US' and vertical in ('B2B', 'B2C Software', 'Content', 'Other Software & Content', 'B2C (Software)', 'B2B (Software)') then 'Software & Content'
-  when cc.sfdc_country_name = 'US' and  vertical in ('Ticketing & Events', 'Financial', 'Healthcare', 'Professional Services', 'Other Services', 'Travel & Hosp', 'Real Estate') then 'Services'
-  when cc.sfdc_country_name = 'US' and  vertical in ('Government', 'EDU', 'Non-Profit', 'Utilities', 'Other Public Sector') then 'Public Sector'
-  when cc.sfdc_country_name = 'US' and  vertical in ('Fashion', 'Food & Bev', 'Manufacturing', 'Other Retail') then 'Retail'
-  when cc.sfdc_country_name = 'US' and  vertical is null then 'No industry'
-  when cc.sfdc_country_name = 'CA' then 'CA'  
+  when cc.sfdc_country_name = 'United States' and vertical in ('B2B', 'B2C Software', 'Content', 'Other Software & Content', 'B2C (Software)', 'B2B (Software)') then 'Software & Content'
+  when cc.sfdc_country_name = 'United States' and  vertical in ('Ticketing & Events', 'Financial', 'Healthcare', 'Professional Services', 'Other Services', 'Travel & Hosp', 'Real Estate') then 'Services'
+  when cc.sfdc_country_name = 'United States' and  vertical in ('Government', 'EDU', 'Non-Profit', 'Utilities', 'Other Public Sector') then 'Public Sector'
+  when cc.sfdc_country_name = 'United States' and  vertical in ('Fashion', 'Food & Bev', 'Manufacturing', 'Other Retail') then 'Retail'
+  when cc.sfdc_country_name = 'United States' and  vertical is null then 'No industry'
+  when cc.sfdc_country_name = 'Canada' then 'CA'  
   -- SouthernEU
-  when cc.sales_region = 'SouthernEU' then cc.sfdc_country_name
+  when cc.sales_region = 'Southern EU' then cc.sfdc_country_name
   -- NorthernEU
-  when cc.sales_region = 'NorthernEU' and cc.sfdc_country_name in ('DE','AT','CH') then 'DACH'
-  when cc.sales_region = 'NorthernEU' and cc.sfdc_country_name in ('BE','NL','LU') then 'BENELUX'
-  when cc.sales_region = 'NorthernEU' and cc.sfdc_country_name in ('NO', 'FI', 'SE', 'DK', 'IS') then 'BENELUX'  
+  when cc.sales_region = 'Northern EU' and cc.sfdc_country_name in ('DE','AT','CH') then 'DACH'
+  when cc.sales_region = 'Northern EU' and cc.sfdc_country_name in ('BE','NL','LU') then 'BENELUX'
+  when cc.sales_region = 'Northern EU' and cc.sfdc_country_name in ('NO', 'FI', 'SE', 'DK', 'IS') then 'BENELUX'  
   -- AU/NZ
   when cc.sales_region = 'AU' then cc.sfdc_country_name
   -- SG
